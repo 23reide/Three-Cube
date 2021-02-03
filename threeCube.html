@@ -1,0 +1,158 @@
+<html>
+	<head>
+        <meta charset="utf-8">
+        <button id=roll>Roll</button>
+		<style>
+			body { 
+                margin: 0; 
+            }
+			canvas { 
+                display: block;
+            }
+            button {
+                height: 25;
+                width: 100%;
+                color: white;
+                font-size: 16px;
+                background-color: grey;
+                border: none;
+            }
+		</style>
+	</head>
+	<body onload="makeCube()">
+        <script src=".\node_modules\three\build\three.js"></script>
+        <script src=".\dat.gui-master\build\dat.gui.min.js"></script>
+        <script src=".\node_modules\three\examples\js\controls\OrbitControls.js"></script>
+        <script>
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+            camera.position.z = 5;
+
+            const renderer = new THREE.WebGLRenderer();
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            document.body.appendChild( renderer.domElement );
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
+            const controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+            //Create a PointLight and turn on shadows for the light
+            const light = new THREE.PointLight( 0xffffff, 5, 100 );
+            light.position.set( 0, 10, 0 );
+            light.castShadow = true; // default false
+            const areaLight = new THREE.AmbientLight ( 0xffffff );
+            scene.add( areaLight );
+            scene.add( light );
+
+            //Set up shadow properties for the light
+            light.shadow.mapSize.width = 512; // default
+            light.shadow.mapSize.height = 512; // default
+            light.shadow.camera.near = 0.5; // default
+            light.shadow.camera.far = 500; // default
+
+            //Create a plane that receives shadows (but does not cast them)
+            const planeGeometry = new THREE.PlaneBufferGeometry( 20, 20, 32, 32 );
+            const planeMaterial = new THREE.MeshStandardMaterial( { color: "rgb(0,0,0)" } )
+            const plane = new THREE.Mesh( planeGeometry, planeMaterial );
+            plane.position.z = -5;
+            plane.receiveShadow = true;
+            scene.add( plane );
+
+            var gui = new dat.GUI({
+                height : 5 * 32 - 1
+            });
+            var params = {
+                scale: 1,
+                rotation: .09,
+                rollLength: 100,
+            };
+            gui.add(params, 'scale').min(0).max(5).step(0.1);
+            gui.add(params, 'rotation').min(-1).max(1).step(0.00001)
+            gui.add(params, 'rollLength').min(-10).max(1000).step(1)
+
+            const geometry = new THREE.BoxGeometry();
+            const loader = new THREE.TextureLoader();
+            const material = [
+                new THREE.MeshBasicMaterial({map: loader.load('./dice5.png')}),
+                new THREE.MeshBasicMaterial({map: loader.load('./dice2.png')}),
+                new THREE.MeshBasicMaterial({map: loader.load('./dice3.png')}),
+                new THREE.MeshBasicMaterial({map: loader.load('./dice4.png')}),
+                new THREE.MeshBasicMaterial({map: loader.load('./dice1.png')}),
+                new THREE.MeshBasicMaterial({map: loader.load('./dice6.png')}),
+            ]
+            var cube = [];
+            var speed = [];
+            var cubeNum = 25;
+
+            function makeCube(){
+                params.scale = 20/cubeNum;
+                for(j=0, i=0; i<cubeNum; i++, j+=3){ //make the cube and give each a unique material
+                    cube[i] = new THREE.Mesh(geometry, material);
+                    scale(i);
+                }
+                positionCubes();
+            }
+
+            function makeSpeed(){
+                for(j=0; j<cubeNum*3; j+=3){
+                    speed[j] = Math.ceil(Math.random()*10)/10;
+                    speed[j+1] = Math.ceil(Math.random()*10)/10;
+                    speed[j+2] = Math.ceil(Math.random()*10)/10;
+                }
+            }
+
+            function positionCubes(){
+                var cubeRows = cube.length/Math.round(Math.sqrt(cube.length)) //num of cubes in columns/rows (num of cubes made in prev loop)
+                for(k=0, j=0; j<cubeRows && k<cube.length; j++){//columns
+                    for(i=0; i<cubeRows && k<cube.length; i++, k++){//rows
+                        x = -3.5+(8.5/cubeRows)*i //-3.5 is the leftest number; 8.5 is the units of space available (-3 to 5)
+                        y = 2.5-(6/cubeRows)*j //2.5 is the top-most number; 6 is the units of space available (-2.5 to 3.5)
+                        cube[k].position.set(x,y,0);
+                        scene.add(cube[k]);
+                    }
+                }
+                renderer.render( scene, camera );
+            }
+            
+            document.getElementById("roll").addEventListener("click", function() {
+                time=0;
+                makeSpeed();
+                animate();
+            });
+
+            function stop(i, j, move){
+                cube[i].rotation.x = Math.ceil(cube[i].rotation.x/(Math.PI/2))*(Math.PI/2);
+                cube[i].rotation.y = Math.ceil(cube[i].rotation.y/(Math.PI/2))*(Math.PI/2);
+                cube[i].rotation.z = Math.ceil(cube[i].rotation.z/(Math.PI/2))*(Math.PI/2);
+                speed[j] = 0;
+                speed[j+1] = 0;
+                speed[j+2] = 0;
+            };
+
+            function rotate(i, j){
+                cube[i].rotation.x += speed[j]*params.rotation;
+                cube[i].rotation.y += speed[j+1]*params.rotation;
+                cube[i].rotation.z += speed[j+2]*params.rotation;
+            }
+
+            function scale(i){
+                cube[i].scale.x = params.scale;
+                cube[i].scale.y = params.scale;
+                cube[i].scale.z = params.scale;
+            }
+
+            var time = 0;
+            function animate() {
+                var move = window.requestAnimationFrame( animate );
+                time++;
+                for(j=0, i=0; i<cube.length; i++, j++){
+                    rotate(i, j);
+                    if(time>params.rollLength){
+                        stop(i, j, move);                   
+                    }
+                    scale(i);
+                }
+                renderer.render( scene, camera );
+                controls.update();
+            }
+        </script>
+</html>
