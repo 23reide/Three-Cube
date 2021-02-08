@@ -1,0 +1,22 @@
+{
+  "name": "three-cube",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/23reide/Three-Cube.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/23reide/Three-Cube/issues"
+  },
+  "homepage": "https://github.com/23reide/Three-Cube#readme",
+  "dependencies": {
+    "three": "^0.125.2"
+  }
+}
