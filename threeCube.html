@@ -14,12 +14,13 @@
                 width: 100%;
                 color: white;
                 font-size: 16px;
+
                 background-color: grey;
                 border: none;
             }
 		</style>
 	</head>
-	<body onload="makeCube()">
+	<body onload="init()">
         <script src=".\node_modules\three\build\three.js"></script>
         <script src=".\node_modules\three\examples\js\libs\dat.gui.min.js"></script>
         <script src=".\node_modules\three\examples\js\controls\OrbitControls.js"></script>
@@ -82,6 +83,12 @@
             var cube = [];
             var speed = [];
             var cubeNum = 25;
+            var running = false;
+
+            function init(){
+                makeCube();
+                animate();
+            }
 
             function makeCube(){
                 params.scale = 20/cubeNum;
@@ -114,9 +121,9 @@
             }
             
             document.getElementById("roll").addEventListener("click", function() {
+                running = true;
                 time=0;
                 makeSpeed();
-                animate();
             });
 
             function stop(i, j, move){
@@ -126,6 +133,7 @@
                 speed[j] = 0;
                 speed[j+1] = 0;
                 speed[j+2] = 0;
+                if(i==cubeNum){running = false;}
             };
 
             function rotate(i, j){
@@ -144,12 +152,14 @@
             function animate() {
                 var move = window.requestAnimationFrame( animate );
                 time++;
-                for(j=0, i=0; i<cube.length; i++, j++){
-                    rotate(i, j);
-                    if(time>params.rollLength){
-                        stop(i, j, move);                   
+                if(running){
+                    for(j=0, i=0; i<cube.length; i++, j++){
+                        rotate(i, j);
+                        if(time>params.rollLength){
+                            stop(i, j, move);                   
+                        }
+                        scale(i);
                     }
-                    scale(i);
                 }
                 renderer.render( scene, camera );
                 controls.update();
