@@ -58,6 +58,7 @@
             plane.receiveShadow = true;
             scene.add( plane );
             let increments = [];
+            let saveIt = [];
 
             var gui = new dat.GUI({
                 height : 5 * 32 - 1
@@ -67,8 +68,9 @@
                 rollLength: 100,
             };
 
-            gui.add(params, 'rotation').min(-1).max(1).step(0.00001)
-            gui.add(params, 'rollLength').min(-10).max(1000).step(1)
+            gui.add(params, 'rotation').min(-1).max(1).step(0.00001);
+            gui.add(params, 'rollLength').min(-10).max(1000).step(1);
+            var rollCount = 1;
 
             const geometry = new THREE.BoxGeometry(0.9,0.9,0.9);
             const loader = new THREE.TextureLoader();
@@ -82,7 +84,7 @@
             ]
             var cube = [];
             var destination = [];
-            var cubeNum = 4;
+            var cubeNum = 1;
             var running = false;
             var xOff = true;
             var yOff = true;
@@ -99,24 +101,35 @@
                     destination[j] = 0;
                     destination[j+1] = 0;
                     destination[j+2] = 0;
+                    saveIt = destination;
+                    console.log(saveIt + "generated");
                 }
                 positionCubes();
             }
             //Test Comment
+
+            xCounter = 1;
+            yCounter = 1;
+            zCounter = 0;
+
             function generateDestination(){
-                for(j=0; j<cubeNum*3; j+=3){
+
+                for(j=0; j<cubeNum; j+=3){
                     var bufferX = destination[j];
-                    destination[j] += 2*Math.PI+Math.floor(Math.random()/0.25)* Math.PI/2;
+                    destination[j] += xCounter*Math.PI/2;
                     increments[j] = (destination[j] - bufferX)/50;
+
                     var bufferY = destination[j+1];
-                    destination[j+1] += 2*Math.PI+Math.floor(Math.random()/0.25)* Math.PI/2;
+                    destination[j+1] += yCounter*Math.PI/2;
                     increments[j+1] = (destination[j+1] - bufferY)/50;
+
                     var bufferZ = destination[j+2];
-                    destination[j+2] += 2*Math.PI+Math.floor(Math.random()/0.25)* Math.PI/2;
+                    destination[j+2]+=zCounter * Math.PI/2;
                     increments[j+2] = (destination[j+2] - bufferZ)/50;
                 }
-                console.log(destination[0]+" go");
-                console.log(increments[0]);
+                for (var m = 0; m<destination.length;m++){
+                    saveIt[m].value=destination[m].value+saveIt[m].value; 
+                }
             }
 
             function positionCubes(){
@@ -135,50 +148,36 @@
             
             document.getElementById("roll").addEventListener("click", function() {
                 running = true;
-                time=0;
                 xOff = false;
                 yOff = false;
                 zOff = false;
                 generateDestination();
+                rollCount++;
             });
-
-            function stop(i, j, move){
-                running = false;
-            };
 
             function rotate(i){
                 if(!xOff){cube[i].rotation.x += increments[3*i];}
                 if(!yOff){cube[i].rotation.y += increments[3*i+1];}
                 if(!zOff){cube[i].rotation.z += increments[3*i+2];}
-                console.log(cube[i].rotation.y);
             }
 
-            var time = 0;
-            //var xRunning = false;
             function animate() {
                 var move = window.requestAnimationFrame( animate );
-                time++;
                 if(running){
                     for(i=0, j=0; i<cube.length; i++, j+=3){
                         if(cube[i].rotation.x>=destination[j]){
                             cube[i].rotation.x = destination[j];
                             xOff=true;
-                            //updateWorldMatrix();
-                            if(!xOff){console.log(cube[i].rotation.x + " rotation X");}
                         }
                         if(cube[i].rotation.y>=destination[j+1]){
                             cube[i].rotation.y = destination[j+1];
-                            yOff = true;
-                            //updateWorldMatrix();
-                            //console.log(cube[i].rotation.x + " rotation X");                 
+                            yOff = true;               
                         }
                         if(cube[i].rotation.z>=destination[j+2]){
                             cube[i].rotation.z = destination[j+2];
-                            zOff = true;
-                            //updateWorldMatrix();
-                            //console.log(cube[i].rotation.x + " rotation X");                 
+                            zOff = true;               
                         }
-                        else if(!xOff||!yOff||!zOff)
+                        if(!xOff||!yOff||!zOff)
                         {
                             rotate(i);
                         }
