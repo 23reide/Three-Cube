@@ -50,7 +50,6 @@
             light.shadow.camera.near = 0.5; // default
             light.shadow.camera.far = 500; // default
 
-            //New Comment
             //Create a plane that receives shadows (but does not cast them)
             const planeGeometry = new THREE.PlaneBufferGeometry( 20, 20, 32, 32 );
             const planeMaterial = new THREE.MeshStandardMaterial( { color: "rgb(0,0,0)" } )
@@ -58,6 +57,7 @@
             plane.position.z = -5;
             plane.receiveShadow = true;
             scene.add( plane );
+
             let increments = [];
             let saveIt = [];
 
@@ -68,16 +68,15 @@
                 rotation: .09,
                 rollLength: 100,
             };
-                //Tesssssssssssting
             gui.add(params, 'rotation').min(-1).max(1).step(0.00001);
             gui.add(params, 'rollLength').min(-10).max(1000).step(1);
             var rollCount = 1;
 
             const geometry = new THREE.BoxGeometry(0.9,0.9,0.9);
             const loader = new THREE.TextureLoader();
-            const material = [
-                new THREE.MeshBasicMaterial({map: loader.load('./dice5.png')}),
+            const material = [//matches standard die: start with 1 in front, 3 on top
                 new THREE.MeshBasicMaterial({map: loader.load('./dice2.png')}),
+                new THREE.MeshBasicMaterial({map: loader.load('./dice5.png')}),
                 new THREE.MeshBasicMaterial({map: loader.load('./dice3.png')}),
                 new THREE.MeshBasicMaterial({map: loader.load('./dice4.png')}),
                 new THREE.MeshBasicMaterial({map: loader.load('./dice1.png')}),
@@ -85,7 +84,7 @@
             ]
             var cube = [];
             var destination = [];
-            var cubeNum = 1;
+            var cubeNum = 1;//can't roll more than one die
             var running = false;
             var xOff = true;
             var yOff = true;
@@ -96,36 +95,67 @@
                 animate();
             }
 
+            var counter = [];
             function makeCube(){
                 for(j=0, i=0; i<cubeNum; i++, j+=3){ //make the cube and give each a unique material
                     cube[i] = new THREE.Mesh(geometry, material);
                     destination[j] = 0;
                     destination[j+1] = 0;
                     destination[j+2] = 0;
+                    var outcome = Math.floor(Math.random() * 6) + 1;//generate random # btwn 1-6
+                    setOutcome(outcome);
                     saveIt = destination;
-                    console.log(saveIt + "generated");
+                    console.log(saveIt + "generated" + outcome);
                 }
                 positionCubes();
             }
-            //Test Comment
 
-            xCounter = 1;
-            yCounter = 1;
-            zCounter = 0;
+            /*xCounter = 3; //front goes up; x rotates last
+            yCounter = 4; //front goes right; y rotates second
+            zCounter = 1; //top goes left; z rotates first*/
+            
+            function setOutcome(outcome){
+                //set rotation counter according to outcome
+                if(outcome === 1){
+                    counter[j] = 4;//z
+                    counter[j+1] = 4;//y
+                    counter[j+2] = 4;//x
+                }else if(outcome === 2){
+                    counter[j] = 4;
+                    counter[j+1] = 3;
+                    counter[j+2] = 4;
+                }else if(outcome === 3){
+                        counter[j] = 4;
+                        counter[j+1] = 4;
+                        counter[j+2] = 5;
+                }else if(outcome === 4){
+                    counter[j] = 4;
+                    counter[j+1] = 4;
+                    counter[j+2] = 3;
+                }else if(outcome === 5){
+                    counter[j] = 4;
+                    counter[j+1] = 5;
+                    counter[j+2] = 4;
+                }else if(outcome === 6){
+                    counter[j] = 4;
+                    counter[j+1] = 4;
+                    counter[j+2] = 6;
+                }
+            }
 
             function generateDestination(){
 
                 for(j=0; j<cubeNum; j+=3){
                     var bufferX = destination[j];
-                    destination[j] += xCounter*Math.PI/2;
+                    destination[j] += counter[j+2]*Math.PI/2;
                     increments[j] = (destination[j] - bufferX)/50;
 
                     var bufferY = destination[j+1];
-                    destination[j+1] += yCounter*Math.PI/2;
+                    destination[j+1] += counter[j+2]*Math.PI/2;
                     increments[j+1] = (destination[j+1] - bufferY)/50;
 
                     var bufferZ = destination[j+2];
-                    destination[j+2]+=zCounter * Math.PI/2;
+                    destination[j+2]+=counter[j] * Math.PI/2;
                     increments[j+2] = (destination[j+2] - bufferZ)/50;
                 }
                 for (var m = 0; m<destination.length;m++){
@@ -137,8 +167,8 @@
                 var cubeRows = cube.length/Math.round(Math.sqrt(cube.length)) //num of cubes in columns/rows (num of cubes made in prev loop)
                 for (var k = 0, j = 0; j < cubeRows; j++) {
                     for (var i = 0; i < cubeRows; i++, k++) {
-                        var x = -cubeRows/2 + (cubeRows * 1.3 / cubeRows) * i //-3 is the leftest number; 8 is the units of space available (-3 to 5); 4 is the amount of atom in a row
-                        var y = -cubeRows/2 + (cubeRows * 1.3 / cubeRows) * j //-2.5 is the bottom-most number; 6 is the units of space available (-2.5 to 3.5); 4 is the amount of atom in a column
+                        var x = -cubeRows/2 + (cubeRows * 1.3 / cubeRows) * i;
+                        var y = -cubeRows/2 + (cubeRows * 1.3 / cubeRows) * j; 
                         cube[k].position.set(x, y, 0);
                         cube[k].name = k;
                         scene.add(cube[k]);
