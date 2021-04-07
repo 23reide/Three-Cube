@@ -110,9 +110,6 @@
             
             function setOutcome(){
                 for(j=0, i=0; i<cubeNum; i++, j+=3){
-                    cube[i].rotation.x = 0; //this doesn't reset anything like it's supposed to
-                    cube[i].rotation.y = 0;
-                    cube[i].rotation.z = 0;
                     var outcome = Math.floor(Math.random() * 6) + 1;//generate random # btwn 1-6
                     if(outcome === 1){
                         counter[j] = 4;//z
