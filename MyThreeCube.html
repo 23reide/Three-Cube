@@ -2,7 +2,7 @@
 	<head>
 		<meta charset="utf-8">
         <button id=roll>Roll Again</button>
-        <div id=total>Total: </div>
+        <div id=total></div>
 		<style>
 			body { 
                 margin: 0; 
@@ -24,7 +24,6 @@
                 background-color: gray;
                 color: black;
                 font-size: 25px;
-                text
             }
 		</style>
 	</head>
@@ -75,7 +74,7 @@
                 rotation: 100,
             };
             gui.add(params, 'scale').min(0).max(5).step(0.1);
-            gui.add(params, 'rotation').min(-100).max(500).step(1)
+            gui.add(params, 'rotation').min(0).max(500).step(1)
 
             const geometry = new THREE.BoxGeometry();
 
@@ -97,8 +96,14 @@
             var cubeNum = 16;
 
             function makeCube(){
-                for(j=0, i=0; i<cubeNum; i++, j+=3){ //make the cube, give each a unique material and outcome
+                for(j=0, i=0; i<cubeNum; i++, j+=3){ //make the cube, give each a unique material
                     cube[i] = new THREE.Mesh(geometry, material);
+                }
+                setOutcome();
+            }; 
+
+            function setOutcome(){
+                for(j=0, i=0; i<cubeNum; i++, j+=3){
                     outcome[i] = Math.floor(Math.random() * 6) + 1;//generate random # btwn 1-6
                     total += outcome[i];
                     if(outcome[i] === 1){
@@ -127,9 +132,9 @@
                         end[j+2] = 2*rot;
                     }
                 }
-                document.getElementById("total").innerHTML += total;
+                document.getElementById("total").innerHTML = "Total: " + total;
                 position();
-            }; 
+            };
 
             function position(){
                 var cubeRows = Math.ceil(Math.sqrt(cube.length)); //num of cubes in columns/rows (num of cubes made in prev loop)
@@ -145,8 +150,19 @@
             }
             
             document.getElementById("roll").addEventListener("click", function() {
-                location.reload();
+                reset(); //location.reload();
+                setOutcome();
             });
+            function reset(){
+                for(i=0; i<cube.length; i++){
+                    cube[i].rotation.x = 0;
+                    cube[i].rotation.y = 0;
+                    cube[i].rotation.z = 0;
+                }
+                time = 0;
+                total = 0;
+                document.getElementById("total").style.display = "none";
+            };
            
             var time = 0;
             function animate() {
